@@ -17,7 +17,7 @@ public class SlideSectionMenu extends LinearLayout implements Animation.Animatio
 
     private static final String TAG = "test_slide";
     //当前的状态
-    private static State mMenuState = State.OPENED;
+    private static State mMenuState = State.CLOSED;
     private MenuAnimationAdapter mAnimationAdapter;
 
 
@@ -42,6 +42,7 @@ public class SlideSectionMenu extends LinearLayout implements Animation.Animatio
     }
 
     private void initView(Context context, AttributeSet attrs) {
+        setVisibility(GONE);
         setWillNotDraw(true);
         setOrientation(VERTICAL);
         mAnimationAdapter = new DefaultAnimationAdapter(context, DefaultAnimationAdapter.DIRECTION_TO_BOTTOM);
@@ -138,4 +139,6 @@ public class SlideSectionMenu extends LinearLayout implements Animation.Animatio
     public void onAnimationRepeat(Animation animation) {
 
     }
+
+
 }
