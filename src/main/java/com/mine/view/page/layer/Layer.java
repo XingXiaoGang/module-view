@@ -9,15 +9,15 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.ext.BuildConfig;
 
-import com.apusapps.tools.unreadtips.UnreadConfig;
 
 /**
  * Created by xingxiaogang on 2016/6/6.
  */
 public abstract class Layer implements ILayer {
 
-    private static final boolean DEBUG = UnreadConfig.DEBUG;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "test.gang.layer";
     private LayerManager mLayerManager;
     public int mScreenWidth;

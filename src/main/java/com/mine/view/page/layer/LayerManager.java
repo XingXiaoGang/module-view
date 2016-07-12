@@ -9,12 +9,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
-
-import com.apusapps.tools.unreadtips.R;
-import com.apusapps.tools.unreadtips.UnreadConfig;
+import android.view.ext.BuildConfig;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -25,7 +22,7 @@ import java.util.List;
  */
 public class LayerManager implements Handler.Callback {
 
-    private static final boolean DEBUG = UnreadConfig.DEBUG;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "test.gang.layerManager";
 
     public static LayerManager mInstance;
@@ -191,10 +188,10 @@ public class LayerManager implements Handler.Callback {
     @Override
     public boolean handleMessage(Message message) {
         switch (message.what) {
-            case R.id.on_home_key: {
-                notifyKeyEvent(KeyEvent.KEYCODE_HOME);
-                break;
-            }
+//            case R.id.on_home_key: {
+//                notifyKeyEvent(KeyEvent.KEYCODE_HOME);
+//                break;
+//            }
         }
         return false;
     }
@@ -217,7 +214,7 @@ public class LayerManager implements Handler.Callback {
                     if (DEBUG) {
                         Log.d(TAG, "onReceive: LayerManager  :SYSTEM_HOME_KEY ");
                     }
-                    mHandler.sendEmptyMessage(R.id.on_home_key);
+//                    mHandler.sendEmptyMessage(R.id.on_home_key);
                 }
             }
         }
