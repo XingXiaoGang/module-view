@@ -1,16 +1,15 @@
 package com.mine.view.page.layer;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.ext.BuildConfig;
-
 
 /**
  * Created by xingxiaogang on 2016/6/6.
@@ -41,14 +40,6 @@ public abstract class Layer implements ILayer {
         return mLayerManager;
     }
 
-    public void finish() {
-        onDestroy();
-        boolean res = mLayerManager.removeLayer(getClass());
-        if (DEBUG) {
-            Log.d(TAG, "finish: remote:" + res);
-        }
-    }
-
     protected abstract WindowManager.LayoutParams onCreateLayoutParams();
 
     public final WindowManager.LayoutParams createDefaultLayoutParams() {
@@ -66,7 +57,21 @@ public abstract class Layer implements ILayer {
         return layoutParams;
     }
 
-    public boolean onKey(View view, int i, KeyEvent keyEvent) {
-        return LayerManager.getInstance(getContext()).removeLayer(getClass());
+    public void finish() {
+        onDestroy();
+        boolean res = mLayerManager.removeLayer(getClass());
+        if (DEBUG) {
+            Log.d(TAG, "finish: remove:" + res);
+        }
+    }
+
+    @Override
+    public boolean onKeyEvent(KeyEvent keyEvent) {
+        return false;
+    }
+
+    @Override
+    public void onFocusChanged(boolean gainFocus, int direction, Rect previouslyFocusedRect) {
+
     }
 }

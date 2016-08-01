@@ -1,6 +1,8 @@
 package com.mine.view.page.layer;
 
 import android.content.Intent;
+import android.graphics.Rect;
+import android.view.KeyEvent;
 import android.view.View;
 
 /**
@@ -13,10 +15,12 @@ public interface ILayer {
 
     void onNewIntent(Intent intent);
 
-    boolean onKeyEvent(int keycode);
-
     void onResume();
 
     void onDestroy();
+
+    boolean onKeyEvent(KeyEvent keyEvent);
+
+    void onFocusChanged(boolean gainFocus, int direction, Rect previouslyFocusedRect);
 
 }

@@ -77,8 +77,13 @@ public class ChooseContactLayer extends Layer {
     }
 
     @Override
-    public boolean onKeyEvent(int keycode) {
-        return false;
+    public boolean onKeyEvent(KeyEvent keyEvent) {
+        if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            Toast.makeText(getContext(), "KEYCODE_BACK", Toast.LENGTH_LONG).show();
+            finish();
+            return true;
+        }
+        return super.onKeyEvent(keyEvent);
     }
 
     @Override
@@ -89,16 +94,6 @@ public class ChooseContactLayer extends Layer {
     @Override
     public void onDestroy() {
 
-    }
-
-    @Override
-    public boolean onKey(View view, int i, KeyEvent keyEvent) {
-        if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            Toast.makeText(getContext(), "KEYCODE_BACK", Toast.LENGTH_LONG).show();
-            finish();
-            return true;
-        }
-        return false;
     }
 
     private class Adapter extends BaseAdapter {

@@ -9,9 +9,11 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.ext.BuildConfig;
+import android.view.ext.R;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -54,10 +56,14 @@ public class LayerManager implements Handler.Callback {
         return mWindowManager;
     }
 
+    public boolean hasLayer() {
+        return layerWrapperList != null && !layerWrapperList.isEmpty();
+    }
+
     //添加悬浮窗
-    public boolean addLayer(Intent intent) {
+    public synchronized boolean addLayer(Intent intent) {
         if (DEBUG) {
-            Log.d(TAG, "addLayer: start");
+            Log.d(TAG, "addLayer: 1");
         }
         ComponentName componentName = intent.getComponent();
         if (componentName == null) {
@@ -78,7 +84,7 @@ public class LayerManager implements Handler.Callback {
                         wrapper.layer.onNewIntent(intent);
                         wrapper.layer.onResume();
                         if (DEBUG) {
-                            Log.d(TAG, "addLayer: layerExist");
+                            Log.d(TAG, "addLayer:3 已存在  :" + componentName);
                         }
                         return false;
                     }
@@ -89,9 +95,6 @@ public class LayerManager implements Handler.Callback {
                 try {
                     Constructor constructor = clazz.getConstructor(LayerManager.class);
                     layer = (Layer) constructor.newInstance(this);
-                    if (DEBUG) {
-                        Log.d(TAG, "addLayer: create a new Layer");
-                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -103,7 +106,6 @@ public class LayerManager implements Handler.Callback {
                         lp = layer.createDefaultLayoutParams();
                     }
                     mWindowManager.addView(wrapper.decorView, lp);
-                    list.add(wrapper);
                     final Layer finalLayer = layer;
                     wrapper.decorView.post(new Runnable() {
                         @Override
@@ -111,6 +113,10 @@ public class LayerManager implements Handler.Callback {
                             finalLayer.onResume();
                         }
                     });
+                    if (DEBUG) {
+                        Log.d(TAG, "addLayer: step 4 , layer added");
+                    }
+                    list.add(wrapper);
                     return true;
                 }
             }
@@ -119,16 +125,27 @@ public class LayerManager implements Handler.Callback {
     }
 
     //移除悬浮窗
-    public boolean removeLayer(Class<? extends Layer> clazz) {
+    public synchronized boolean removeLayer(Class<? extends Layer> clazz) {
         if (DEBUG) {
-            Log.d(TAG, "removeLayer: " + clazz.getSimpleName());
+            Log.d(TAG, "removeLayer: step 1, " + clazz.getSimpleName());
         }
         final List<LayerWrapper> list = layerWrapperList;
         if (list != null) {
-            for (LayerWrapper wrapper : list) {
+            for (int i = 0; i < list.size(); i++) {
+                LayerWrapper wrapper = list.get(i);
                 if (wrapper.layer.getClass().isAssignableFrom(clazz)) {
-                    mWindowManager.removeView(wrapper.decorView);
-                    list.remove(wrapper);
+                    wrapper.layer.onDestroy();
+                    try {
+                        mWindowManager.removeView(wrapper.decorView);
+                        boolean remove = layerWrapperList.remove(wrapper);
+                        if (DEBUG) {
+                            Log.d(TAG, "removeLayer:step 2 从列表删除 ：" + remove);
+                        }
+                    } catch (Throwable t) {
+                        if (DEBUG) {
+                            Log.e(TAG, "remove layer err:", t);
+                        }
+                    }
                     return true;
                 }
             }
@@ -137,15 +154,15 @@ public class LayerManager implements Handler.Callback {
     }
 
     //隐藏悬浮窗
+    @Deprecated
     public boolean hideLayer(Class<? extends Layer> clazz) {
         if (DEBUG) {
-            Log.d(TAG, "removeLayer: " + clazz.getSimpleName());
+            Log.d(TAG, "hideLayer: " + clazz.getSimpleName());
         }
         final List<LayerWrapper> list = layerWrapperList;
         if (list != null) {
             for (LayerWrapper wrapper : list) {
                 if (wrapper.layer.getClass().isAssignableFrom(clazz)) {
-                    mWindowManager.removeView(wrapper.decorView);
                     wrapper.decorView.setVisibility(View.INVISIBLE);
                     return true;
                 }
@@ -155,30 +172,36 @@ public class LayerManager implements Handler.Callback {
     }
 
     //移除所有
-    public void removeAllLayer() {
+    public synchronized void removeAllLayer() {
         if (DEBUG) {
-            Log.d(TAG, "removeAllLayer");
+            Log.d(TAG, "removeAllLayer step 1", new RuntimeException());
         }
         final List<LayerWrapper> list = layerWrapperList;
         if (list != null) {
-            for (LayerWrapper wrapper : list) {
+            //这里代码虽然不多，但至关重要 请不要轻易更改
+            while (!list.isEmpty()) {
+                int last = list.size() - 1;
                 try {
-                    mWindowManager.removeView(wrapper.decorView);
+                    ((Layer) list.get(last).layer).finish();
+                    list.remove(last);
                 } catch (Throwable t) {
+                    if (DEBUG) {
+                        Log.e(TAG, "removeLayer error: " + t);
+                    }
                 }
             }
-            layerWrapperList.clear();
         }
     }
 
     public ILayer getTopLayer() {
-        return layerWrapperList == null || layerWrapperList.isEmpty() ? null : layerWrapperList.get(0).layer;
+        return layerWrapperList == null || layerWrapperList.isEmpty() ? null : layerWrapperList.get(layerWrapperList.size() - 1).layer;
     }
 
-    private void notifyKeyEvent(int keycode) {
-        for (LayerWrapper layerWrapper : layerWrapperList) {
-            if (layerWrapper.layer != null) {
-                if (layerWrapper.layer.onKeyEvent(keycode)) {
+    private void notifyKeyEvent(KeyEvent keyEvent) {
+        for (int i = layerWrapperList.size() - 1; i >= 0; i--) {
+            final LayerWrapper wrapper = layerWrapperList.get(i);
+            if (wrapper.layer != null) {
+                if (wrapper.layer.onKeyEvent(keyEvent)) {
                     break;
                 }
             }
@@ -187,11 +210,9 @@ public class LayerManager implements Handler.Callback {
 
     @Override
     public boolean handleMessage(Message message) {
-        switch (message.what) {
-//            case R.id.on_home_key: {
-//                notifyKeyEvent(KeyEvent.KEYCODE_HOME);
-//                break;
-//            }
+        if (message.what == R.id.on_home_key) {
+            KeyEvent keyEvent = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HOME);
+            notifyKeyEvent(keyEvent);
         }
         return false;
     }
@@ -214,7 +235,7 @@ public class LayerManager implements Handler.Callback {
                     if (DEBUG) {
                         Log.d(TAG, "onReceive: LayerManager  :SYSTEM_HOME_KEY ");
                     }
-//                    mHandler.sendEmptyMessage(R.id.on_home_key);
+                    mHandler.sendEmptyMessage(R.id.on_home_key);
                 }
             }
         }
