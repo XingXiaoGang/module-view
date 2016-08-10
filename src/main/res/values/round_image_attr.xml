@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="roundImageView">
+        <attr name="border_width" format="dimension" />
+        <attr name="border_color" format="color" />
+        <attr name="shadow_width" format="dimension" />
+        <attr name="shadow_color" format="color" />
+        <attr name="show_border" format="boolean" />
+    </declare-styleable>
+</resources>

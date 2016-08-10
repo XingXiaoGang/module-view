@@ -209,9 +209,9 @@ public class MaterialMenuView extends View implements MaterialMenu {
     private void adjustDrawablePadding() {
         if (drawable != null) {
             drawable.setBounds(
-                0, 0,
-                drawable.getIntrinsicWidth() + getPaddingLeft() + getPaddingRight(),
-                drawable.getIntrinsicHeight() + getPaddingTop() + getPaddingBottom()
+                    0, 0,
+                    drawable.getIntrinsicWidth() + getPaddingLeft() + getPaddingRight(),
+                    drawable.getIntrinsicHeight() + getPaddingTop() + getPaddingBottom()
             );
         }
     }
