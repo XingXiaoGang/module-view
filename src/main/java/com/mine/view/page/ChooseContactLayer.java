@@ -14,7 +14,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.innso.utils.thread.ThreadPool;
 import com.mine.view.page.layer.Layer;
 import com.mine.view.page.layer.LayerManager;
 
@@ -29,7 +28,6 @@ public class ChooseContactLayer extends Layer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "test.ChooseContactDialog";
     private ListView mListView;
-    private ThreadPool mThreadPool;
 
     private HashMap<String, ImageView> mViewBundle = new HashMap<>();
     private HashMap<Long, Bitmap> mDrawableBundle = new HashMap<>();
