@@ -2,4 +2,7 @@
 <resources>
     <string name="empty"></string>
     <string name="app_name">moduleView</string>
+    <string name="cancel">取消</string>
+    <string name="del">删除</string>
+
 </resources>
