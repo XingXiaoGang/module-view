@@ -1,6 +1,8 @@
 package com.mine.view.menu.slide_section_menu;
 
-import android.view.animation.Animation;
+import android.view.ViewGroup;
+
+import com.nineoldandroids.view.ViewPropertyAnimator;
 
 import java.util.List;
 
@@ -9,7 +11,9 @@ import java.util.List;
  */
 public interface IMenuAnimation {
 
-    List<Animation> getAnimations(int itemNum);
-// 关闭的时候一般不用动画 用动画感觉反而体验不好
-//    List<Animation> getCoseAnimations(int itemNum);
+    List<ViewPropertyAnimator> getAnimations(ViewGroup viewGroup);
+
+    long getItemDuration();
+
+    long getInterval();
 }

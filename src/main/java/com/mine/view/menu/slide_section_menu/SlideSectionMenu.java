@@ -4,9 +4,13 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.widget.LinearLayout;
+
+import com.nineoldandroids.animation.Animator;
+import com.nineoldandroids.animation.AnimatorListenerAdapter;
+import com.nineoldandroids.view.ViewPropertyAnimator;
 
 import java.util.List;
 
@@ -18,8 +22,7 @@ public class SlideSectionMenu extends LinearLayout implements Animation.Animatio
     private static final String TAG = "test_slide";
     //当前的状态
     private static State mMenuState = State.CLOSED;
-    private MenuAnimationAdapter mAnimationAdapter;
-
+    private IMenuAnimation mIAnim;
 
     public enum State {
         OPENED, OPENING, CLOSING, CLOSED
@@ -45,42 +48,68 @@ public class SlideSectionMenu extends LinearLayout implements Animation.Animatio
         setVisibility(GONE);
         setWillNotDraw(true);
         setOrientation(VERTICAL);
-        mAnimationAdapter = new DefaultAnimationAdapter(context, DefaultAnimationAdapter.DIRECTION_TO_BOTTOM);
+        mIAnim = new DefaultMenuAnimation();
     }
 
     public void openMenu(boolean anim) {
         if (mMenuState == State.CLOSED) {
             mMenuState = State.OPENING;
-            setVisibility(VISIBLE);
-            //open
-            if (mAnimationAdapter != null && anim) {
-                final int childCount = getChildCount();
-                List<Animation> animations = mAnimationAdapter.getAnimations(childCount);
-                switch (mAnimationAdapter.getType()) {
-                    case MenuAnimationAdapter.TYPE_ITEM: {
-                        for (int i = 0; i < childCount; i++) {
-                            final View child = getChildAt(i);
-                            final Animation animation = animations.get(i);
-                            if (animation != null) {
-                                if (child.getVisibility() == VISIBLE) {
-                                    child.startAnimation(animation);
-                                }
-                                if (i == childCount - 1) {
-                                    animation.setAnimationListener(this);
-                                } else {
-                                    animation.setAnimationListener(null);
-                                }
-                            }
+            if (anim) {
+                if (getVisibility() == GONE) {
+                    setVisibility(INVISIBLE);
+                    getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                        @Override
+                        public void onGlobalLayout() {
+                            runAnim();
+                            getViewTreeObserver().removeGlobalOnLayoutListener(this);
                         }
-                        break;
-                    }
-                    case MenuAnimationAdapter.TYPE_CONTENT: {
-                        final Animation animation = animations.get(0);
-                        startAnimation(animation);
-                        animation.setAnimationListener(this);
-                        break;
-                    }
+                    });
+                } else if (getVisibility() == INVISIBLE) {
+                    runAnim();
                 }
+            } else {
+                for (int i = 0; i < getChildCount(); i++) {
+                    getChildAt(i).setVisibility(VISIBLE);
+                }
+                setVisibility(VISIBLE);
+            }
+        }
+    }
+
+    public void runAnim() {
+        //open
+        if (mIAnim != null) {
+            for (int i = 0; i < getChildCount(); i++) {
+                getChildAt(i).setVisibility(INVISIBLE);
+            }
+
+            List<ViewPropertyAnimator> mAnimators = mIAnim.getAnimations(this);
+
+            final int count = mAnimators.size();
+
+            for (int i = 0; i < count; i++) {
+                final ViewPropertyAnimator animation = mAnimators.get(i);
+                final int finalI = i;
+                animation.setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+                        super.onAnimationStart(animation);
+                        //todo 改
+                        getChildAt(finalI).setVisibility(VISIBLE);
+                        if (finalI == 0) {
+                            setVisibility(VISIBLE);
+                        }
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        if (finalI == count - 1) {
+                            mMenuState = State.OPENED;
+                        }
+                    }
+                });
+                animation.start();
             }
         }
     }
@@ -92,8 +121,8 @@ public class SlideSectionMenu extends LinearLayout implements Animation.Animatio
         }
     }
 
-    public void setAnimationAdapter(MenuAnimationAdapter adapter) {
-        this.mAnimationAdapter = adapter;
+    public void setAnimationAdapter(IMenuAnimation adapter) {
+        this.mIAnim = adapter;
     }
 
     public State getMenuState() {
