@@ -72,6 +72,7 @@ public class SlideSectionMenu extends LinearLayout implements Animation.Animatio
                     getChildAt(i).setVisibility(VISIBLE);
                 }
                 setVisibility(VISIBLE);
+                mMenuState = State.OPENED;
             }
         }
     }
@@ -127,19 +128,6 @@ public class SlideSectionMenu extends LinearLayout implements Animation.Animatio
 
     public State getMenuState() {
         return mMenuState;
-    }
-
-    public void toggleMenu(boolean anim) {
-        switch (mMenuState) {
-            case OPENED: {
-                closeMenu();
-                break;
-            }
-            case CLOSED: {
-                openMenu(anim);
-                break;
-            }
-        }
     }
 
     @Override
