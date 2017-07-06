@@ -1,6 +1,7 @@
 package com.mine.view.gesture;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
@@ -15,15 +16,24 @@ public class GestureHandler implements GestureDetector.OnGestureListener {
     private GestureCallBack mGestureCallBack;
     private GestureDetector mGestureDetector;
     private Size mScreenSize;
+    boolean isHandled = false;
 
     public GestureHandler(Context context, GestureCallBack callBack) {
-        mGestureDetector = new GestureDetector(context, this);
+        this.mGestureDetector = new GestureDetector(context, this);
         this.mGestureCallBack = callBack;
-        mScreenSize = Utils.getScreenSize(context);
+        this.mScreenSize = Utils.getScreenSize(context);
     }
 
     public boolean onTouchEvent(MotionEvent event) {
-        return mGestureDetector.onTouchEvent(event);
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL: {
+                isHandled = false;
+                break;
+            }
+        }
+        mGestureDetector.onTouchEvent(event);
+        return isHandled;
     }
 
     public void setGestureCallBack(GestureCallBack callBack) {
@@ -32,7 +42,8 @@ public class GestureHandler implements GestureDetector.OnGestureListener {
 
     @Override
     public boolean onDown(MotionEvent e) {
-        return false;
+        isHandled = false;
+        return isHandled;
     }
 
     @Override
@@ -42,12 +53,14 @@ public class GestureHandler implements GestureDetector.OnGestureListener {
 
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
+        isHandled = true;
         return mGestureCallBack != null && mGestureCallBack.onGestureClick();
     }
 
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-        return false;
+        isHandled = true;
+        return isHandled;
     }
 
     @Override
@@ -59,9 +72,8 @@ public class GestureHandler implements GestureDetector.OnGestureListener {
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
         int dx = (int) Math.abs(e2.getX() - e1.getX());
         int dy = (int) Math.abs(e2.getY() - e1.getY());
-        int left = (int) (mScreenSize.width / 4 * 3);
-        int bottom = (int) (mScreenSize.height / 4 * 3);
-        if (e1.getRawX() > left && e2.getRawX() > left && e1.getRawY() < bottom && e2.getRawY() < bottom) {
+        Rect rect = new Rect((int) (mScreenSize.width / 5 * 4), 0, (int) mScreenSize.width, (int) (mScreenSize.height / 5 * 3));
+        if (rect.contains((int) e1.getRawX(), (int) e1.getRawY()) && rect.contains((int) e2.getRawX(), (int) e2.getRawY())) {
             if (dy > dx) {
                 if (mGestureCallBack != null) {
                     if (velocityY > velocityX) {
@@ -70,10 +82,11 @@ public class GestureHandler implements GestureDetector.OnGestureListener {
                         mGestureCallBack.onSlideUp();
                     }
                 }
-                return true;
+                return isHandled = true;
             }
         }
-        return false;
+        isHandled = false;
+        return isHandled;
     }
 
     public interface GestureCallBack {

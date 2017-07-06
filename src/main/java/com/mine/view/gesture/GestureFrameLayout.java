@@ -11,6 +11,7 @@ import android.widget.FrameLayout;
 public class GestureFrameLayout extends FrameLayout {
 
     private GestureHandler mGestureHandler;
+    private boolean isIntercept;
 
     public GestureFrameLayout(Context context) {
         super(context);
@@ -40,6 +41,10 @@ public class GestureFrameLayout extends FrameLayout {
     public boolean dispatchTouchEvent(MotionEvent ev) {
         //用系统自带的手势处理:弊端就是它会拦截所有事件,导致不能向下分发
         mGestureHandler.onTouchEvent(ev);
-        return super.dispatchTouchEvent(ev);
+        return isIntercept || super.dispatchTouchEvent(ev);
+    }
+
+    public void setIntercept(boolean intercept) {
+        isIntercept = intercept;
     }
 }
