@@ -4,10 +4,12 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.widget.LinearLayout;
 
+import com.mine.view.gesture.GestureFrameLayout;
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorListenerAdapter;
 import com.nineoldandroids.view.ViewPropertyAnimator;
@@ -67,6 +69,7 @@ public class SlideSectionMenu extends LinearLayout implements Animation.Animatio
                 } else if (getVisibility() == INVISIBLE) {
                     runAnim();
                 }
+                dimBackground();
             } else {
                 for (int i = 0; i < getChildCount(); i++) {
                     getChildAt(i).setVisibility(VISIBLE);
@@ -119,11 +122,32 @@ public class SlideSectionMenu extends LinearLayout implements Animation.Animatio
         if (mMenuState == State.OPENED) {
             mMenuState = State.CLOSED;
             setVisibility(INVISIBLE);
+            unDimBackgroud();
         }
     }
 
     public void setAnimationAdapter(IMenuAnimation adapter) {
         this.mIAnim = adapter;
+    }
+
+    private void dimBackground() {
+        ViewGroup viewGroup = null;
+        while ((viewGroup = (ViewGroup) getParent()) != null) {
+            if (viewGroup instanceof GestureFrameLayout) {
+                ((GestureFrameLayout) viewGroup).dimBackground();
+                break;
+            }
+        }
+    }
+
+    private void unDimBackgroud() {
+        ViewGroup viewGroup = null;
+        while ((viewGroup = (ViewGroup) getParent()) != null) {
+            if (viewGroup instanceof GestureFrameLayout) {
+                ((GestureFrameLayout) viewGroup).unDimBackground();
+                break;
+            }
+        }
     }
 
     public State getMenuState() {
