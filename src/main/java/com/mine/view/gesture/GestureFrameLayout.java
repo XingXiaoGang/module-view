@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.fenghuo.utils.BuildConfig;
 import com.fenghuo.utils.Size;
 import com.fenghuo.utils.Utils;
 
@@ -45,7 +46,7 @@ public class GestureFrameLayout extends FrameLayout {
     private void initView(Context context) {
         setFocusable(true);
         this.mScreenSize = Utils.getScreenSize(context);
-        if (false) {
+        if (BuildConfig.DEBUG) {
             setWillNotDraw(false);
             mDebugPaint = new Paint();
             mDebugPaint.setStyle(Paint.Style.FILL);
@@ -60,7 +61,7 @@ public class GestureFrameLayout extends FrameLayout {
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        updateHotRect();
+        updateHotRect(true);
     }
 
     @Override
@@ -123,7 +124,7 @@ public class GestureFrameLayout extends FrameLayout {
         }
     }
 
-    private void updateHotRect() {
+    private void updateHotRect(boolean small) {
 
         assert (getChildCount() == 1);
 
@@ -131,8 +132,9 @@ public class GestureFrameLayout extends FrameLayout {
 
         //计算边界
         int bottom = 0;
-//        int left = (int) (getRight() - Math.max(Utils.dp2px(50, getContext()), viewGroup.getMeasuredWidth()));
-        int left = (int) (getRight() - Utils.dp2px(50, getContext()));
+        //菜单展示的时候，hostRect与菜单区域相同； 不展示时，保留最小区域
+        int left = small ? (int) (getRight() - Utils.dp2px(50, getContext())) :
+                (int) (getRight() - Math.max(Utils.dp2px(50, getContext()), viewGroup.getMeasuredWidth()));
         if (viewGroup.getVisibility() == VISIBLE) {
             bottom = viewGroup.getMeasuredHeight() + getPaddingTop();
         }
@@ -160,7 +162,7 @@ public class GestureFrameLayout extends FrameLayout {
             @Override
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
-                updateHotRect();
+                updateHotRect(false);
             }
         });
         anim.start();
@@ -169,7 +171,7 @@ public class GestureFrameLayout extends FrameLayout {
     public void unDimBackground() {
         isDim = false;
         setBackgroundColor(Color.TRANSPARENT);
-        updateHotRect();
+        updateHotRect(true);
     }
 
     public interface GestureCallBack {
